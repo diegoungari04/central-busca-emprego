@@ -10,7 +10,7 @@ Criada por [Diego Ungari](https://www.linkedin.com/in/diegoungari), profissional
 |---|---|
 | **Painel** | Vagas ativas, aplicações da semana contra a meta, entrevistas, follow-ups pendentes, funil com taxa de retorno e a lista do que fazer hoje |
 | **Vagas** | Tracker com status, data de aplicação, pretensão, versão do CV, recrutador, próximo passo, palavras-chave e notas |
-| **Radar diário** | Vagas novas encontradas nos dias úteis, com nota de aderência e o motivo; um clique salva no tracker ou descarta |
+| **Radar diário** | Vagas novas dos últimos 7 dias no LinkedIn Vagas, em publicações do LinkedIn (recrutadores e curadorias) e na Remotar, sem repetir vagas já vistas em dias anteriores; cada uma com nota de aderência e motivo, e um clique salva no tracker ou descarta |
 | **Remuneração** | Faixa CLT e PJ por cargo, porte e setor, número único para formulários e conversor CLT ↔ PJ |
 | **Mensagens** | Convite, mensagem pós-candidatura, e-mail, follow-up, agradecimento e pedido de indicação, em português, inglês e espanhol, sem gastar créditos |
 | **Perguntas** | Banco de respostas para perguntas de seleção. Busca primeiro no banco (grátis); traduz ou gera com IA só em último caso, e salva o resultado para reaproveitar |
@@ -33,19 +33,21 @@ O plugin traz duas skills:
 3. Em uma conversa, peça: **"Monte minha central de busca de emprego"**. Tenha à mão seu CV ou seu LinkedIn.
 4. Para analisar uma vaga depois, cole a descrição e peça: **"Analisa essa vaga e registra na central"**.
 
-O radar diário precisa do Claude com acesso ao seu navegador e de uma tarefa agendada; o plugin cria a tarefa se a sua conta tiver esses recursos.
+O radar diário precisa do Claude com acesso ao seu navegador e de uma tarefa agendada; o plugin cria a tarefa se a sua conta tiver esses recursos e faz uma primeira busca na hora para testar.
+
+**Como o radar evita repetição:** cada vaga avaliada, inclusive as descartadas, entra numa lista de vistas guardada na própria central. Nos dias seguintes, a mesma vaga não volta, mesmo que apareça em outra plataforma, outra cidade ou outro idioma.
 
 ### 2. No Claude, sem instalar nada
 
-Envie o arquivo ([`template/central-busca.html`](https://github.com/diegoungari04/central-busca-emprego/blob/main/central-busca-emprego/template/central-busca.html)) em uma conversa e peça: *"Personalize o CONFIG desta página com os meus dados do CV anexo, usando só fatos verdadeiros, e publique como artifact com banco de dados."*
+Envie o arquivo [`template/central-busca.html`](central-busca-emprego/template/central-busca.html) em uma conversa e peça: *"Personalize o CONFIG desta página com os meus dados do CV anexo, usando só fatos verdadeiros, e publique como artifact com banco de dados."*
 
 ### 3. Em outras IAs ou só no navegador
 
-A página funciona sozinha: abra `template/central-busca.html` no navegador e os dados ficam salvos nele. Para personalizar com ChatGPT, Gemini ou outra IA, siga ([docs/outras-ias.md](https://github.com/diegoungari04/central-busca-emprego/blob/main/central-busca-emprego/docs/outras-ias.md)).
+A página funciona sozinha: abra `template/central-busca.html` no navegador e os dados ficam salvos nele. Para personalizar com ChatGPT, Gemini ou outra IA, siga [docs/outras-ias.md](central-busca-emprego/docs/outras-ias.md).
 
 ## Como a pretensão é calculada
 
-Base nos Guias Salariais 2027 da Robert Half e da Michael Page (empresas médias e grandes), com CAGED, Vagas.com e Glassdoor como referência de mercado amplo. A faixa CLT vai do 50º ao 75º percentil; PJ é CLT × 1,35 a 1,45. A tabela que vem no modelo é de **RH no Brasil**: para outras áreas, peça à IA para pesquisar e trocar. Detalhes em [metodologia-salarial.md](skills/montar-central-busca/references/metodologia-salarial.md).
+Base nos Guias Salariais 2027 da Robert Half e da Michael Page (empresas médias e grandes), com CAGED, Vagas.com e Glassdoor como referência de mercado amplo. A faixa CLT vai do 50º ao 75º percentil; PJ é CLT × 1,35 a 1,45. A tabela que vem no modelo é de **RH no Brasil**: para outras áreas, peça à IA para pesquisar e trocar. Detalhes em [metodologia-salarial.md](central-busca-emprego/skills/montar-central-busca/references/metodologia-salarial.md).
 
 ## Privacidade e cuidados
 
@@ -55,6 +57,8 @@ Base nos Guias Salariais 2027 da Robert Half e da Michael Page (empresas médias
 - Os valores salariais são referências de mercado, não garantia de oferta.
 
 ## Estrutura
+
+Os arquivos do plugin ficam na pasta [`central-busca-emprego/`](central-busca-emprego):
 
 ```
 .claude-plugin/plugin.json        manifesto do plugin
