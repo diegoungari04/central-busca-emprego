@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central de Busca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: escritório de planejamento, direto e sem enfeite; trabalho diário de quem procura emprego.
+   IDEA: o quadro de controle de uma mesa de recrutamento: fichas, funil e régua salarial.
+   PICTURE: o funil vivo de candidaturas no topo do painel e a tabela de vagas como peça central.
+   COLOUR and TYPE: pedra #e7e4df, preto, tijolo #c8371e, painéis brancos; noite #171513. Schibsted Grotesk.
+   LAYOUT: barra de abas, cada aba é uma tela de trabalho; tabelas largas com régua fina. */
+:root{color-scheme:light dark;--bg:light-dark(#e7e4df,#171513);--ink:light-dark(#141210,#ece8e2);--panel:light-dark(#ffffff,#221f1c);--line:light-dark(#d3cec6,#3a3530);--mute:light-dark(#5f5850,#a8a097);--brick:light-dark(#c8371e,#ff6a4d);--soft:light-dark(#f4f1ec,#2b2723);--ok:light-dark(#2f6b3b,#7fcf8e)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(26px,4vw,40px);font-weight:700}
+h2{font-size:22px;font-weight:700;margin-bottom:12px}
+h3{font-size:17px;font-weight:700}
+a{color:var(--brick)}
+header{padding:20px max(4vw,16px) 0;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:end;justify-content:space-between}
+header p{margin:4px 0 0;color:var(--mute);font-size:14px}
+nav{display:flex;gap:4px;overflow-x:auto;padding:16px max(4vw,16px) 0;border-bottom:2px solid var(--ink);position:sticky;top:0;background:var(--bg);z-index:5}
+nav a{flex:none;text-decoration:none;color:var(--ink);padding:10px 14px;font-weight:500;border-radius:6px 6px 0 0;min-height:44px;display:flex;align-items:center}
+nav a.on{background:var(--ink);color:var(--bg)}
+main{padding:24px max(4vw,16px) 64px;max-width:1240px;margin:0 auto}
+section.view{display:none}section.view.on{display:block}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))}
+.kpi b{display:block;font-size:clamp(30px,4vw,42px);line-height:1;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--mute);font-size:14px}
+.kpi.alert b{color:var(--brick)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.sp{justify-content:space-between}
+.mt{margin-top:16px}
+button,.btn{font:inherit;font-size:15px;min-height:44px;padding:8px 16px;border-radius:6px;border:1px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer}
+button.pri{background:var(--brick);border-color:var(--brick);color:#fff}
+button.sm{min-height:36px;padding:4px 10px;font-size:14px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,nav a:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+input,select,textarea{font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);width:100%;min-height:44px}
+textarea{min-height:120px;resize:vertical}
+label{display:block;font-size:14px;color:var(--mute)}
+label>input,label>select,label>textarea{margin-top:4px;color:var(--ink)}
+.form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.form .full{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-weight:500;color:var(--mute);border-bottom:2px solid var(--ink);padding:8px 10px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--soft);font-size:13px;white-space:nowrap}
+.tag.hot{background:var(--brick);color:#fff}
+.tag.ok{background:var(--ok);color:var(--panel)}
+.mute{color:var(--mute);font-size:14px}
+.bar{height:26px;background:var(--soft);border-radius:4px;position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--brick)}
+.bar.k i{background:var(--ink)}
+.brow{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) 3em;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.brow b{text-align:right;font-variant-numeric:tabular-nums}
+.funnel{display:grid;gap:6px;margin-top:8px}
+.note{padding:10px 14px;border-left:4px solid var(--brick);background:var(--soft);border-radius:0 6px 6px 0;font-size:15px}
+.sheet{position:fixed;inset:0;background:rgb(0 0 0/.45);display:none;align-items:flex-start;justify-content:center;padding:4vh 12px;z-index:20;overflow:auto}
+.sheet.on{display:flex}
+.sheet .panel{width:min(820px,100%)}
+.out{white-space:pre-wrap;background:var(--soft);border-radius:6px;padding:14px;font-size:15px;min-height:140px}
+.empty{padding:28px;text-align:center;color:var(--mute)}
+.scroll{overflow-x:auto}
+ul.todo{list-style:none;margin:0;padding:0}
+ul.todo li{padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+#banner{display:none;margin:0 max(4vw,16px);}
+#banner.on{display:block}
+@media(prefers-reduced-motion:no-preference){.bar i{transition:width .5s ease}}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute)}.stack td:empty{display:none}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header>
+  <div><h1>Central de busca de emprego</h1><p id="subt"></p></div>
+  <button class="pri" id="btnNova">+ Registrar vaga</button>
+</header>
+<nav id="tabs">
+  <a href="#painel">Painel</a><a href="#vagas">Vagas</a><a href="#radar">Radar diário</a><a href="#salarios">Remuneração</a><a href="#mensagens">Mensagens</a><a href="#perguntas">Perguntas</a><a href="#padroes">Padrões</a><a href="#contatos">Contatos</a>
+</nav>
+<div id="banner" class="note mt"></div>
+<main>
+
+<section class="view" id="v-painel">
+  <div class="grid g4" id="kpis"></div>
+  <div class="grid g2 mt">
+    <div class="panel"><div class="row sp"><h2>Funil</h2><span class="mute" id="taxa"></span></div><div class="funnel" id="funil"></div></div>
+    <div class="panel"><h2>Fazer hoje</h2><ul class="todo" id="hoje"></ul></div>
+  </div>
+  <div class="grid g2 mt">
+    <div class="panel"><div class="row sp"><h2>Metas da semana</h2><button class="sm" id="btnMetas">Editar metas</button></div><div id="metas"></div></div>
+    <div class="panel"><h2>Foco da busca</h2>
+      <p class="mute" style="margin-top:0" id="foco"></p>
+      <ul class="todo">
+        <li><span>Pretensão sempre pela aba Remuneração, nunca de cabeça</span></li>
+        <li><span>Follow-up 7 dias após aplicar se não houver retorno</span></li>
+        <li><span>Uma conexão com recrutador ou gestor por vaga aplicada</span></li>
+        <li><span>Revisar padrões a cada 10 candidaturas e ajustar CV/LinkedIn</span></li>
+      </ul></div>
+  </div>
+</section>
+
+<section class="view" id="v-vagas">
+  <div class="row sp"><h2>Vagas</h2>
+    <div class="row"><input id="fBusca" placeholder="Buscar empresa ou cargo" style="width:220px"><select id="fStatus" style="width:190px"><option value="">Todos os status</option></select></div></div>
+  <div class="panel scroll"><table class="stack" id="tVagas"><thead><tr><th>Empresa e cargo</th><th>Status</th><th>Aplicada</th><th>Próximo passo</th><th class="n">Pretensão CLT</th><th></th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section class="view" id="v-radar">
+  <div class="row sp"><h2>Radar diário</h2><select id="fRadar" style="width:190px"><option value="nova">Novas</option><option value="salva">Salvas</option><option value="descartada">Descartadas</option><option value="">Todas</option></select></div>
+  <p class="mute" id="radarInfo">O rastreio roda nos dias úteis pelo seu Chrome e grava aqui as vagas mais alinhadas ao seu perfil.</p>
+  <div class="panel scroll"><table class="stack" id="tRadar"><thead><tr><th>Vaga</th><th>Onde</th><th class="n">Fit</th><th>Por que</th><th></th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section class="view" id="v-salarios">
+  <h2>Remuneração</h2>
+  <div class="grid g2">
+    <div class="panel"><h3>Calcular pretensão</h3>
+      <div class="form mt">
+        <label class="full">Cargo<select id="sCargo"></select></label>
+        <label>Porte<select id="sPorte"><option>G</option><option>P/M</option></select></label>
+        <label>Setor<select id="sSetor"></select></label>
+      </div>
+      <div class="grid g4 mt" id="sOut"></div>
+      <p class="mute" id="sNota"></p>
+    </div>
+    <div class="panel"><h3>Converter CLT e PJ</h3>
+      <div class="form mt">
+        <label>Salário CLT mensal<input id="cClt" inputmode="numeric" value="20000"></label>
+        <label>Proposta PJ mensal<input id="cPj" inputmode="numeric" value="27000"></label>
+      </div>
+      <div id="cOut" class="mt"></div>
+      <p class="mute">PJ precisa ficar de 1,35 a 1,45 vezes o CLT para cobrir 13º, férias + 1/3, FGTS e impostos. Plano de saúde por sua conta soma mais.</p>
+    </div>
+  </div>
+  <div class="panel mt scroll"><div class="row sp"><h3>Banco de faixas (CLT mensal)</h3><a id="planilha" hidden>Abrir planilha com todas as fontes</a></div>
+    <table class="stack mt" id="tSal"><thead><tr><th>Cargo</th><th>Porte</th><th class="n">CLT mín</th><th class="n">CLT máx</th><th class="n">PJ mín</th><th class="n">PJ máx</th><th>Mercado amplo</th></tr></thead><tbody></tbody></table>
+    <p class="mute">Bases: Robert Half e Michael Page, Guias Salariais 2027 (empresas médias e grandes). Mercado amplo: CAGED, Vagas.com, Glassdoor. Atualizado em 17/11/2026.</p></div>
+</section>
+
+<section class="view" id="v-mensagens">
+  <h2>Gerador de mensagens</h2>
+  <div class="grid g2">
+    <div class="panel"><div class="form">
+      <label class="full">Vaga do tracker<select id="mVaga"><option value="">Nenhuma (preencher à mão)</option></select></label>
+      <label>Tipo<select id="mTipo">
+        <option value="convite">Convite LinkedIn (até 300 caracteres)</option>
+        <option value="posaplic">Mensagem LinkedIn após aplicar</option>
+        <option value="email">E-mail de candidatura</option>
+        <option value="followup">Follow-up sem retorno</option>
+        <option value="agradece">Agradecimento pós-entrevista</option>
+        <option value="indicacao">Pedido de indicação</option>
+      </select></label>
+      <label>Idioma<select id="mLang"><option value="pt">Português</option><option value="en">Inglês</option><option value="es">Espanhol</option></select></label>
+      <label>Nome da pessoa<input id="mNome" placeholder="Ex.: Alina"></label>
+      <label>Empresa<input id="mEmp"></label>
+      <label>Cargo<input id="mCargo"></label>
+      <label class="full">Prova que quer destacar<select id="mProva"></select></label>
+      <label class="full">Detalhe da conversa ou da vaga (opcional)<input id="mExtra" placeholder="Ex.: falamos sobre o desafio de estruturar a área do zero"></label>
+    </div></div>
+    <div class="panel"><div class="row sp"><h3 id="mTit">Mensagem</h3><span class="mute" id="mCount"></span></div>
+      <div class="out mt" id="mOut"></div>
+      <div class="row mt"><button class="pri" id="mCopy">Copiar</button><button id="mClaude" hidden>Refinar com Claude</button><span class="mute" id="mMsg"></span></div>
+      <p class="mute">Modelos prontos em português, inglês e espanhol, sem gastar créditos. Tom direto, primeira pessoa, sem travessão. Revise o nome antes de enviar.</p></div>
+  </div>
+</section>
+
+<section class="view" id="v-perguntas">
+  <h2>Perguntas de seleção</h2>
+  <p class="mute" style="margin-top:0">Cole a pergunta do formulário ou da entrevista. A busca no seu banco de respostas não gasta créditos; o Claude só entra se você pedir.</p>
+  <div class="grid g2">
+    <div class="panel"><div class="form">
+      <label class="full">Pergunta<textarea id="qTxt" placeholder="Ex.: Por que você quer trabalhar na nossa empresa?"></textarea></label>
+      <label class="full">Vaga do tracker<select id="qVaga"><option value="">Nenhuma</option></select></label>
+      <label>Idioma da resposta<select id="qLang"><option value="pt">Português</option><option value="en">Inglês</option><option value="es">Espanhol</option></select></label>
+      <label>Limite de caracteres<input id="qLim" type="number" min="0" inputmode="numeric" placeholder="Sem limite"></label>
+    </div>
+    <div class="row mt"><button class="pri" id="qBuscar">Buscar no banco</button></div>
+    <div id="qMatches" class="mt"></div></div>
+    <div class="panel"><div class="row sp"><h3>Resposta</h3><span class="mute" id="qCount"></span></div>
+      <div class="out mt" id="qOut" contenteditable="true" aria-label="Resposta editável"></div>
+      <div class="row mt"><button class="pri" id="qCopy">Copiar</button><button id="qTrad" hidden>Traduzir com Claude</button><button id="qGen" hidden>Gerar com Claude (último recurso)</button><button id="qSave" hidden>Salvar no banco</button></div>
+      <p class="mute" id="qMsg">Você pode editar a resposta antes de copiar.</p></div>
+  </div>
+  <div class="panel mt scroll"><div class="row sp"><h3>Banco de respostas</h3><button class="sm" id="btnResp">+ Resposta</button></div>
+    <table class="stack mt" id="tResp"><thead><tr><th>Pergunta-modelo</th><th>Idiomas</th><th class="n">Usos</th><th></th></tr></thead><tbody></tbody></table>
+    <p class="mute">Use {empresa}, {cargo} e {faixa} nas respostas: são trocados pelos dados da vaga escolhida.</p></div>
+</section>
+
+<section class="view" id="v-padroes">
+  <h2>Padrões das vagas</h2>
+  <div id="insights" class="grid"></div>
+  <div class="grid g2 mt" id="padroes"></div>
+</section>
+
+<section class="view" id="v-contatos">
+  <div class="row sp"><h2>Contatos e recrutadores</h2><button id="btnContato">+ Contato</button></div>
+  <div class="panel scroll"><table class="stack" id="tCont"><thead><tr><th>Pessoa</th><th>Empresa</th><th>Canal</th><th>Último contato</th><th>Próximo follow-up</th><th></th></tr></thead><tbody></tbody></table></div>
+</section>
+</main>
+
+<div class="sheet" id="sheet"><div class="panel"><div class="row sp"><h2 id="shTit">Vaga</h2><button class="sm" id="shX">Fechar</button></div><form id="shForm" class="form mt"></form><div class="row mt"><button class="pri" id="shSave">Salvar</button><span class="mute" id="shMsg"></span></div></div></div>
+
+<script>
+{
+/* ===================== CONFIGURE AQUI =====================
+   Troque os valores abaixo pelos seus dados. Só fatos verdadeiros:
+   as mensagens e as respostas geradas usam estes textos. */
+const CONFIG={
+  nome:"Seu Nome Completo",
+  primeiroNome:"Seu Nome",
+  subtitulo:"Seu Nome · foco: cargo-alvo principal, plano B cargo alternativo",
+  foco:"Narrativa principal: o tipo de vaga que você busca e o que te diferencia. Plano B: a alternativa.",
+  assinatura:"Seu Nome\n+55 00 00000-0000 · voce@email.com\nlinkedin.com/in/seuperfil",
+  cargoAlvo:{pt:"Gerente de Pessoas e Cultura",en:"People & Culture Manager",es:"Gerente de Personas y Cultura"},
+  resumo:{pt:"Tenho 10 anos de experiência na minha área, entre startups e empresas em crescimento",en:"I have 10 years of experience in my field, across startups and growing companies",es:"Tengo 10 años de experiencia en mi área, entre startups y empresas en crecimiento"},
+  resumoEmail:{pt:"São 10 anos na minha área, boa parte em empresas em crescimento",en:"I've spent 10 years in my field, mostly in growing companies",es:"Llevo 10 años en mi área, gran parte en empresas en crecimiento"},
+  /* Provas: resultados concretos que você quer destacar nas mensagens (uma frase, primeira pessoa) */
+  provas:[
+    {k:"p1",pt:"Estruturei a área do zero em uma empresa de 200 pessoas",en:"I built the function from scratch at a 200-person company",es:"Estructuré el área desde cero en una empresa de 200 personas"},
+    {k:"p2",pt:"Aumentei a participação na pesquisa de clima de 20% para 80%",en:"I raised engagement survey participation from 20% to 80%",es:"Aumenté la participación en la encuesta de clima del 20% al 80%"}
+  ],
+  /* Perfil: resumo factual usado quando o Claude escreve por você. Quanto mais específico, melhor. */
+  perfil:"Nome, X anos de experiência. Empresa A (cargo, período): principais entregas com números. Empresa B (cargo, período): entregas. Formação. Idiomas e nível. Cidade e modelo de trabalho preferido.",
+  planilhaUrl:"",
+  /* Faixas salariais mensais (CLT) por cargo e porte. Exemplo: RH no Brasil, Robert Half e Michael Page 2027. */
+  salarios:[["Diretor(a) de RH","G",53400,63200,"CAGED SP: mediana R$ 40,6 mil"],["Diretor(a) de RH","P/M",40200,46200,"CAGED Brasil: mediana R$ 28,8 mil"],["Head / Gerente sênior de RH","G",37500,41300,"Glassdoor (Sênior): base R$ 18 mil"],["Head / Gerente sênior de RH","P/M",28000,31500,"Glassdoor (Sênior): base R$ 18 mil"],["Gerente de RH / Pessoas e Cultura","G",31300,35500,"Glassdoor SP: R$ 14 mil; CAGED SP P75: R$ 17,9 mil"],["Gerente de RH / Pessoas e Cultura","P/M",22400,25100,"Vagas: experiente acima de R$ 13,3 mil"],["Gerente de Remuneração / Cargos e Salários","G",32200,35600,""],["Gerente de Remuneração / Cargos e Salários","P/M",24600,27100,""],["Gerente de DHO","G",32500,36300,""],["Gerente de DHO","P/M",24500,26300,""],["Gerente de RH: projetos, processos e mudança","G",31500,33300,""],["Gerente de RH: projetos, processos e mudança","P/M",26000,28000,""],["Business Partner, Gerente","G",30200,33400,""],["Business Partner, Gerente","P/M",22300,24400,""],["Especialista de Remuneração / Cargos e Salários","G",18700,21100,"Vagas: experiente acima de R$ 11,2 mil"],["Especialista de Remuneração / Cargos e Salários","P/M",15900,18100,"Vagas: experiente acima de R$ 11,2 mil"],["Coordenador(a) / Especialista de RH","G",17500,20600,"Vagas (coord.): acima de R$ 8 mil"],["Coordenador(a) / Especialista de RH","P/M",14600,16500,"Vagas (coord.): acima de R$ 8 mil"],["HR Business Partner Sênior","G",17500,19600,"Vagas: experiente acima de R$ 10,1 mil"],["HR Business Partner Sênior","P/M",14400,16300,"Vagas: experiente acima de R$ 10,1 mil"]],
+  setores:[["Tecnologia, SaaS, scale-up",.05],["Mercado financeiro",.1],["Serviços de TI, consultoria",0],["Indústria, multinacional",0],["Varejo, mídia, educação, saúde",-.05],["Startup pré-Série A",-.1],["Terceiro setor",-.2]],
+  metas:{aplic:8,follow:5,conex:5},
+  /* Respostas iniciais do banco de perguntas (usadas no modo local, sem Claude). Use {empresa}, {cargo} e {faixa}. */
+  respostasIniciais:[
+    {id:"pretensao",pergunta:"Qual sua pretensão salarial?",tags:["pretensão","salário","salary expectations"],resposta_pt:"A combinar conforme o pacote completo. Como referência, para esta posição minha faixa é {faixa}.",resposta_en:"Open to discussing the full package. As a reference, my range for this role is {faixa}.",resposta_es:"A convenir según el paquete completo. Como referencia, mi rango para esta posición es {faixa}."},
+    {id:"disponibilidade",pergunta:"Qual sua disponibilidade para início?",tags:["disponibilidade","início","availability"],resposta_pt:"Tenho disponibilidade imediata.",resposta_en:"I'm available to start immediately.",resposta_es:"Tengo disponibilidad inmediata."},
+    {id:"por-que-empresa",pergunta:"Por que você quer trabalhar na nossa empresa?",tags:["por que nossa empresa","interesse","why us"],revisar:true,resposta_pt:"O que me chamou atenção na {empresa} é o momento da empresa e o desafio da vaga de {cargo}. Escreva aqui, com suas palavras, o que você faz bem e por que combina com esse desafio."}
+  ]
+};
+/* ========================================================== */
+const ST=["Salva","A confirmar","Aplicada","Triagem","Entrevista RH","Entrevista gestor","Case/teste","Proposta","Contratado","Recusado","Sem retorno","Desisti"];
+const ATIVO=["Salva","A confirmar","Aplicada","Triagem","Entrevista RH","Entrevista gestor","Case/teste","Proposta"];
+const RESP=["Triagem","Entrevista RH","Entrevista gestor","Case/teste","Proposta","Contratado","Recusado"];
+const ENTREV=["Entrevista RH","Entrevista gestor","Case/teste","Proposta"];
+const SETORES=CONFIG.setores,SAL=CONFIG.salarios;
+const PROVAS=CONFIG.provas,PERFIL=CONFIG.perfil;
+const FAM=[["Head/Gerente de Pessoas",/head|gerente|manager|l[ií]der|lead/i],["HRBP",/business partner|hrbp|people partner/i],["Cargos e estrutura",/cargo|remunera|org|estrutura|c&s/i],["Cultura/EB/DHO",/cultura|employer|dho|desenvolvimento|l&d|experi/i],["Especialista/Coord.",/especialista|coordena|analista/i]];
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl=n=>n||n===0?"R$ "+Math.round(n).toLocaleString("pt-BR"):"";
+const hoje=()=>new Date().toLocaleDateString("sv-SE",{timeZone:"America/Sao_Paulo"});
+const dias=d=>d?Math.floor((new Date(hoje())-new Date(d))/864e5):null;
+const fd=d=>d?d.split("-").reverse().slice(0,2).join("/"):"";
+let S={resp:[],vagas:[],radar:[],contatos:[],metas:Object.assign({},CONFIG.metas),radarInfo:null},db=null,can=true;
+
+$("#subt").textContent=CONFIG.subtitulo;$("#foco").textContent=CONFIG.foco;if(CONFIG.planilhaUrl){$("#planilha").href=CONFIG.planilhaUrl;$("#planilha").hidden=false}
+/* navegação */
+const views=["painel","vagas","radar","salarios","mensagens","perguntas","padroes","contatos"];
+function route(){const h=location.hash.slice(1);const v=views.includes(h)?h:"painel";for(const x of views){$("#v-"+x).classList.toggle("on",x===v)}for(const a of document.querySelectorAll("nav a"))a.classList.toggle("on",a.getAttribute("href")==="#"+v)}
+addEventListener("hashchange",route);route();
+
+/* painel */
+function semana(){const d=new Date(hoje());const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);return d.toISOString().slice(0,10)}
+function renderPainel(){
+  const V=S.vagas,ini=semana();
+  const ativas=V.filter(v=>ATIVO.includes(v.status)).length;
+  const aplicSem=V.filter(v=>v.dataAplicacao&&v.dataAplicacao>=ini).length;
+  const entrev=V.filter(v=>ENTREV.includes(v.status)).length;
+  const venc=V.filter(v=>(v.dataProximo&&v.dataProximo<=hoje()&&ATIVO.includes(v.status))||(v.status==="Aplicada"&&dias(v.dataAplicacao)>=7));
+  const novas=S.radar.filter(r=>r.status==="nova").length;
+  $("#kpis").innerHTML=[[ativas,"vagas ativas"],[aplicSem+" / "+S.metas.aplic,"aplicações nesta semana"],[entrev,"em entrevista ou case"],[venc.length,"follow-ups pendentes",venc.length>0],[novas,"novas no radar"]].map(([b,s,a])=>`<div class="panel kpi${a?" alert":""}"><b>${b}</b><span>${s}</span></div>`).join("");
+  const ap=V.filter(v=>!["Salva","A confirmar"].includes(v.status));
+  const stages=[["Aplicadas",ap.length],["Com retorno",ap.filter(v=>RESP.includes(v.status)).length],["Entrevistas",ap.filter(v=>[...ENTREV,"Contratado"].includes(v.status)||v.chegouEntrevista).length],["Propostas",ap.filter(v=>["Proposta","Contratado"].includes(v.status)).length]];
+  const mx=Math.max(1,stages[0][1]);
+  $("#funil").innerHTML=stages.map(([l,n],i)=>`<div class="brow"><span>${l}</span><div class="bar${i?"":" k"}"><i style="width:${n/mx*100}%"></i></div><b>${n}</b></div>`).join("");
+  $("#taxa").textContent=ap.length?`Taxa de retorno: ${Math.round(stages[1][1]/ap.length*100)}%`:"";
+  const todo=[...venc.map(v=>[`Follow-up: ${v.empresa}`,v.proximoPasso||"Aplicada há "+dias(v.dataAplicacao)+" dias sem retorno",v.id]),...V.filter(v=>v.status==="Salva").slice(0,5).map(v=>[`Aplicar: ${v.empresa}`,v.cargo,v.id])];
+  if(novas)todo.push([`Revisar ${novas} vaga(s) novas no radar`,"Salvar as boas e descartar o resto",null]);
+  $("#hoje").innerHTML=todo.length?todo.map(([a,b,id])=>`<li><span><b>${esc(a)}</b><br><span class="mute">${esc(b)}</span></span>${id?`<button class="sm" data-ed="${id}">Abrir</button>`:`<a href="#radar">Ver radar</a>`}</li>`).join(""):`<li class="mute">Nada pendente. Bom momento para revisar o radar.</li>`;
+  const fol=V.filter(v=>v.ultimoFollowup&&v.ultimoFollowup>=ini).length,con=S.contatos.filter(c=>c.ultimoContato&&c.ultimoContato>=ini).length;
+  $("#metas").innerHTML=[["Aplicações",aplicSem,S.metas.aplic],["Follow-ups",fol,S.metas.follow],["Contatos novos",con,S.metas.conex]].map(([l,n,m])=>`<div class="brow"><span>${l}</span><div class="bar"><i style="width:${Math.min(100,n/Math.max(1,m)*100)}%"></i></div><b>${n}/${m}</b></div>`).join("");
+}
+
+/* vagas */
+$("#fStatus").innerHTML+=ST.map(s=>`<option>${s}</option>`).join("");
+function renderVagas(){
+  const q=$("#fBusca").value.toLowerCase(),f=$("#fStatus").value;
+  const L=S.vagas.filter(v=>(!f||v.status===f)&&(!q||(v.empresa+" "+v.cargo).toLowerCase().includes(q))).sort((a,b)=>(ATIVO.indexOf(a.status)<0)-(ATIVO.indexOf(b.status)<0)||(b.atualizado||"").localeCompare(a.atualizado||""));
+  $("#tVagas tbody").innerHTML=L.length?L.map(v=>`<tr><td><b>${esc(v.empresa)}</b><br><span class="mute">${esc(v.cargo)}${v.link?` · <a href="${esc(v.link)}" target="_blank" rel="noopener">vaga</a>`:""}</span></td>
+  <td><select data-st="${v.id}" style="min-height:36px;width:auto">${ST.map(s=>`<option${s===v.status?" selected":""}>${s}</option>`).join("")}</select></td>
+  <td>${fd(v.dataAplicacao)}${v.dataAplicacao?`<br><span class="mute">${dias(v.dataAplicacao)}d</span>`:""}</td>
+  <td>${esc(v.proximoPasso||"")}${v.dataProximo?`<br><span class="tag${v.dataProximo<=hoje()?" hot":""}">${fd(v.dataProximo)}</span>`:""}</td>
+  <td class="n">${brl(v.pretensaoCLT)}</td>
+  <td><div class="row"><button class="sm" data-ed="${v.id}">Editar</button><button class="sm" data-msg="${v.id}">Mensagem</button><button class="sm" data-del="${v.id}">Excluir</button></div></td></tr>`).join(""):`<tr><td colspan="6" class="empty">Nenhuma vaga ainda. Registre a primeira ou me mande a descrição no chat.</td></tr>`;
+}
+$("#fBusca").oninput=renderVagas;$("#fStatus").onchange=renderVagas;
+
+/* formulário */
+const FV=[["empresa","Empresa","text",1],["cargo","Cargo","text",1],["link","Link da vaga","url"],["plataforma","Plataforma","sel",0,["LinkedIn","Gupy","InHire","Indicação","E-mail","Site da empresa","Outra"]],["status","Status","sel",0,ST],["setor","Setor","sel",0,SETORES.map(s=>s[0])],["porte","Porte","sel",0,["G","P/M","Não sei"]],["contrato","Contrato","sel",0,["A definir","CLT","PJ"]],["modelo","Modelo","sel",0,["Remoto","Híbrido","Presencial"]],["local","Local","text"],["dataAplicacao","Data da aplicação","date"],["faixaAnunciada","Faixa anunciada","text"],["pretensaoCLT","Pretensão CLT","number"],["pretensaoPJ","Pretensão PJ","number"],["fit","Fit (0 a 100)","number"],["cvVersao","Versão do CV","text"],["recrutador","Recrutador(a)","text"],["proximoPasso","Próximo passo","text"],["dataProximo","Data do próximo passo","date"],["ultimoFollowup","Último follow-up","date"],["palavrasChave","Palavras-chave (vírgula)","text",0,null,1],["notas","Notas","area",0,null,1]];
+const FC=[["nome","Nome","text",1],["empresa","Empresa","text"],["papel","Papel","sel",0,["Recrutador(a)","Gestor(a) da vaga","Headhunter","Indicação","Ex-colega"]],["canal","Canal","sel",0,["LinkedIn","E-mail","WhatsApp","Telefone"]],["ultimoContato","Último contato","date"],["proximoFollowup","Próximo follow-up","date"],["notas","Notas","area",0,null,1]];
+const FR=[["pergunta","Pergunta-modelo","text",1,null,1],["tags","Palavras-chave para a busca (vírgula)","text",0,null,1],["resposta_pt","Resposta em português","area",0,null,1],["curta","Versão curta em português (até 200 caracteres)","area",0,null,1],["resposta_en","Resposta em inglês","area",0,null,1],["resposta_es","Resposta em espanhol","area",0,null,1]];
+const KINDS={vaga:{F:FV,src:()=>S.vagas,col:"vagas",n:"vaga"},contato:{F:FC,src:()=>S.contatos,col:"contatos",n:"pessoa"},resp:{F:FR,src:()=>S.resp,col:"respostas",n:"resposta"}};
+let edit=null;
+function field([k,l,t,req,opts,full],val){val=val??"";const c=full?' class="full"':"";if(t==="sel")return`<label${c}>${l}<select name="${k}">${opts.map(o=>`<option${o===val?" selected":""}>${esc(o)}</option>`).join("")}</select></label>`;if(t==="area")return`<label${c}>${l}<textarea name="${k}">${esc(val)}</textarea></label>`;return`<label${c}>${l}<input name="${k}" type="${t}" value="${esc(Array.isArray(val)?val.join(", "):val)}"${req?" required":""}></label>`}
+function openSheet(kind,id){const K=KINDS[kind],isV=kind==="vaga",F=K.F,o=id?K.src().find(x=>x.id===id)||{}:{};edit={kind,id,fields:F};
+  if(!id&&isV){o.status="Aplicada";o.dataAplicacao=hoje()}
+  $("#shTit").textContent=(id?"Editar ":"Nova ")+K.n;$("#shForm").innerHTML=F.map(f=>field(f,o[f[0]])).join("");$("#shMsg").textContent="";$("#sheet").classList.add("on");$("#shForm input")?.focus()}
+$("#shX").onclick=()=>$("#sheet").classList.remove("on");
+$("#btnNova").onclick=()=>openSheet("vaga");$("#btnContato").onclick=()=>openSheet("contato");
+$("#shSave").onclick=async()=>{if(!db){$("#shMsg").textContent="Banco indisponível nesta visualização.";return}
+  const fd2=new FormData($("#shForm")),o={};for(const[k,,t]of edit.fields){let v=fd2.get(k);if(t==="number")v=v===""?null:Number(v);if(k==="palavrasChave"||k==="tags")v=String(v||"").split(",").map(s=>s.trim()).filter(Boolean);o[k]=v}
+  const req=edit.fields.find(f=>f[3]&&!o[f[0]]);if(req){$("#shMsg").textContent="Preencha "+req[1].toLowerCase()+".";return}
+  o.atualizado=new Date().toISOString();if(edit.kind==="vaga"&&ENTREV.includes(o.status))o.chegouEntrevista=true;
+  $("#shMsg").textContent="Salvando…";
+  try{const K=KINDS[edit.kind],col=db.collection(K.col);const ref=edit.id?col.doc(edit.id):col.doc();const prev=edit.id?K.src().find(x=>x.id===edit.id):null;const body=Object.assign({},prev||{},o);delete body.id;await ref.set(body);$("#sheet").classList.remove("on")}catch(e){$("#shMsg").textContent="Não salvou ("+(e.code||"erro")+")."}};
+
+document.addEventListener("click",async e=>{const t=e.target;
+  if(t.dataset.ed){openSheet("vaga",t.dataset.ed)}
+  if(t.dataset.ec){openSheet("contato",t.dataset.ec)}
+  if(t.dataset.er){openSheet("resp",t.dataset.er)}
+  if(t.dataset.qu){usar(t.dataset.qu)}
+  if(t.dataset.msg){location.hash="mensagens";$("#mVaga").value=t.dataset.msg;fillFromVaga();gen()}
+  if(t.dataset.del||t.dataset.dc||t.dataset.dr){const id=t.dataset.del||t.dataset.dc||t.dataset.dr;if(t.textContent!=="Confirmar"){t.textContent="Confirmar";t.classList.add("pri");setTimeout(()=>{t.textContent="Excluir";t.classList.remove("pri")},4000);return}try{await db.collection(t.dataset.del?"vagas":t.dataset.dc?"contatos":"respostas").doc(id).delete()}catch(er){}}
+  if(t.dataset.rs||t.dataset.rd){const id=t.dataset.rs||t.dataset.rd,r=S.radar.find(x=>x.id===id);if(!r||!db)return;const{id:_,...body}=r;try{if(t.dataset.rs){await db.collection("vagas").doc().set({empresa:r.empresa||"",cargo:r.titulo||"",link:r.link||"",plataforma:r.plataforma||"LinkedIn",status:"Salva",local:r.local||"",modelo:r.modelo||"",fit:r.fit??null,notas:r.motivo||"",atualizado:new Date().toISOString()})}await db.collection("radar").doc(id).set({...body,status:t.dataset.rs?"salva":"descartada"})}catch(er){}}
+});
+document.addEventListener("change",async e=>{const id=e.target.dataset.st;if(!id||!db)return;const v=S.vagas.find(x=>x.id===id);if(!v)return;const{id:_,...b}=v;b.status=e.target.value;b.atualizado=new Date().toISOString();if(ENTREV.includes(b.status))b.chegouEntrevista=true;if(b.status==="Aplicada"&&!b.dataAplicacao)b.dataAplicacao=hoje();try{await db.collection("vagas").doc(id).set(b)}catch(er){}});
+
+/* radar */
+function renderRadar(){const f=$("#fRadar").value;const L=S.radar.filter(r=>!f||r.status===f).sort((a,b)=>(b.data||"").localeCompare(a.data||"")||(b.fit||0)-(a.fit||0));
+  const i=S.radarInfo;$("#radarInfo").textContent=i?`Última execução: ${fd(i.ultimaExecucao)} · ${i.resumo||""}`:"O rastreio roda nos dias úteis pelo seu Chrome e grava aqui as vagas mais alinhadas ao seu perfil. Ainda não houve execução.";
+  $("#tRadar tbody").innerHTML=L.length?L.map(r=>`<tr><td><b>${esc(r.titulo)}</b><br><span class="mute">${esc(r.empresa)}${r.link?` · <a href="${esc(r.link)}" target="_blank" rel="noopener">abrir</a>`:""}</span></td><td>${esc(r.plataforma||"")}<br><span class="mute">${esc([r.local,r.modelo].filter(Boolean).join(" · "))} · ${fd(r.data)}</span></td><td class="n"><span class="tag${r.fit>=80?" hot":""}">${r.fit??"-"}</span></td><td class="mute">${esc(r.motivo||"")}</td><td>${r.status==="nova"?`<div class="row"><button class="sm pri" data-rs="${r.id}">Salvar</button><button class="sm" data-rd="${r.id}">Descartar</button></div>`:`<span class="tag">${esc(r.status)}</span>`}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">Sem vagas nesta lista.</td></tr>`}
+$("#fRadar").onchange=renderRadar;
+
+/* salários */
+$("#sCargo").innerHTML=[...new Set(SAL.map(s=>s[0]))].map(c=>`<option>${c}</option>`).join("");$("#sSetor").innerHTML=SETORES.map(([s,a])=>`<option value="${a}">${s} (${a>0?"+":""}${Math.round(a*100)}%)</option>`).join("");$("#sSetor").value="0";
+function calcSal(){const r=SAL.find(s=>s[0]===$("#sCargo").value&&s[1]===$("#sPorte").value);if(!r)return;const a=1+Number($("#sSetor").value),mn=Math.round(r[2]*a/100)*100,mx=Math.round(r[3]*a/100)*100;
+  $("#sOut").innerHTML=[["CLT",brl(mn)+" a "+brl(mx)],["PJ",brl(mn*1.35)+" a "+brl(mx*1.45)],["Número único CLT",brl(Math.ceil(mx/500)*500)],["Número único PJ",brl(Math.ceil(mx*1.45/500)*500)]].map(([l,v])=>`<div class="kpi"><span>${l}</span><b style="font-size:20px;margin-top:4px">${v}</b></div>`).join("");
+  $("#sNota").textContent=r[4]?"Mercado amplo: "+r[4]+". Em PME do interior, espere ofertas mais perto disso.":"Sem dado público de mercado amplo para este cargo."}
+["#sCargo","#sPorte","#sSetor"].forEach(s=>$(s).onchange=calcSal);calcSal();
+$("#tSal tbody").innerHTML=SAL.map(s=>`<tr><td>${s[0]}</td><td>${s[1]}</td><td class="n">${brl(s[2])}</td><td class="n">${brl(s[3])}</td><td class="n">${brl(s[2]*1.35)}</td><td class="n">${brl(s[3]*1.45)}</td><td class="mute">${s[4]}</td></tr>`).join("");
+function conv(){const c=Number($("#cClt").value.replace(/\D/g,"")),p=Number($("#cPj").value.replace(/\D/g,""));const r=c?p/c:0;$("#cOut").innerHTML=`<div class="brow"><span>PJ equivalente</span><div class="bar"><i style="width:${Math.min(100,r/1.6*100)}%"></i></div><b>${r.toFixed(2)}x</b></div><p>${!c?"":r>=1.45?"A proposta PJ compensa bem o CLT informado.":r>=1.35?"Compensa no limite. Negocie benefícios ou recesso remunerado.":`Abaixo do equivalente. Para empatar, peça pelo menos ${brl(c*1.35)}.`}</p>`}
+$("#cClt").oninput=conv;$("#cPj").oninput=conv;conv();
+
+/* mensagens */
+const L=()=>$("#mLang").value;
+function provOpts(){const cur=$("#mProva").value;$("#mProva").innerHTML=PROVAS.map(p=>`<option value="${p.k}">${esc(p[L()])}</option>`).join("");if(cur)$("#mProva").value=cur}
+provOpts();
+function fillFromVaga(){const v=S.vagas.find(x=>x.id===$("#mVaga").value);if(!v)return;$("#mEmp").value=v.empresa||"";$("#mCargo").value=v.cargo||"";$("#mNome").value=v.recrutador||""}
+function txt(){const lg=L(),n=$("#mNome").value.trim(),ex=$("#mExtra").value.trim(),P=PROVAS.find(p=>p.k===$("#mProva").value)||PROVAS[0],pv=P[lg],low=lg==="en"?pv:pv.charAt(0).toLowerCase()+pv.slice(1);
+  const D=[{pt:"sua empresa",en:"your company",es:"su empresa"}[lg],CONFIG.cargoAlvo[lg]];
+  const emp=$("#mEmp").value.trim()||D[0],cg=$("#mCargo").value.trim()||D[1],sig=CONFIG.assinatura,R=CONFIG.resumo[lg],RE=CONFIG.resumoEmail[lg],PN=CONFIG.primeiroNome;
+  const exl=ex?"\n\n"+ex+".":"";
+  if(lg==="en"){const hi=`Hi${n?" "+n:" there"},`;return{
+  convite:`Hi${n?" "+n:""}, I saw the ${cg} role at ${emp} and it matches what I do. ${pv}. I'd love to connect and follow the process.`,
+  posaplic:`${hi} hope you're well.\n\nI just applied for the ${cg} role at ${emp}. ${R}. ${pv}.${exl}\n\nIf it makes sense, I'd be glad to talk about where the team is heading.`,
+  email:`Subject: Application for ${cg} | ${CONFIG.nome}\n\n${hi}\n\nI saw the ${cg} opening at ${emp} and it matches what I'm looking for.\n\n${RE}. ${pv}.${ex?" "+ex+".":""}\n\nMy resume is attached. Happy to talk whenever works for you.\n\nBest,\n${sig}`,
+  followup:`${hi}\n\nJust checking whether the ${cg} process at ${emp} is still open. I'm still very interested and happy to share anything that helps.${exl}\n\nThanks!`,
+  agradece:`${hi}\n\nThank you for today's conversation about the ${cg} role.${ex?" I especially enjoyed talking about "+ex+".":""} I left even more confident that I can contribute, especially because ${low}.\n\nLooking forward to the next steps.\n\nBest,\n${PN}`,
+  indicacao:`${hi}\n\nI saw that ${emp} opened a ${cg} role and thought of you. I'm applying and wanted to ask if you'd be open to referring me or telling me a bit about the team.\n\nIn short, here's what I bring: ${low}.\n\nNo problem at all if you can't. Thanks!`}[$("#mTipo").value]}
+  if(lg==="es"){const hi=`Hola${n?", "+n:""},`;return{
+  convite:`Hola${n?", "+n:""}, vi la vacante de ${cg} en ${emp} y me identifiqué con lo que buscan. ${pv}. Me gustaría conectar para seguir el proceso.`,
+  posaplic:`${hi} ¿cómo estás?\n\nAcabo de postularme a la vacante de ${cg} en ${emp}. ${R}. ${pv}.${exl}\n\nSi tiene sentido, me encantaría conversar sobre el momento del área.`,
+  email:`Asunto: Postulación a ${cg} | ${CONFIG.nome}\n\n${hi}\n\nVi la vacante de ${cg} en ${emp} y me identifiqué con lo que están buscando.\n\n${RE}. ${pv}.${ex?" "+ex+".":""}\n\nAdjunto mi CV. Quedo a disposición para conversar.\n\nSaludos,\n${sig}`,
+  followup:`${hi}\n\nQuería saber si el proceso de ${cg} en ${emp} sigue abierto. Mantengo mi interés y puedo enviar cualquier información que ayude.${exl}\n\n¡Gracias!`,
+  agradece:`${hi}\n\nGracias por la conversación de hoy sobre la vacante de ${cg}.${ex?" Me gustó especialmente hablar sobre "+ex+".":""} Salí aún más convencido de que puedo aportar, sobre todo porque ${low}.\n\nQuedo atento a los próximos pasos.\n\nSaludos,\n${PN}`,
+  indicacao:`${hi}\n\nVi que ${emp} abrió una vacante de ${cg} y me acordé de ti. Me estoy postulando y quería saber si podrías recomendarme o contarme un poco sobre el área.\n\nEn resumen, esto es lo que aporto: ${low}.\n\nSin problema si no es posible. ¡Gracias!`}[$("#mTipo").value]}
+  const oi=n?`Oi, ${n}, tudo bem?`:"Oi, tudo bem?";return{
+  convite:`${oi} Vi a vaga de ${cg} na ${emp} e me identifiquei com o que vocês buscam. ${pv}. Queria me conectar para acompanhar o processo.`,
+  posaplic:`${oi}\n\nAcabei de me candidatar para ${cg} na ${emp}. ${R}. ${pv}.${exl}\n\nSe fizer sentido, adoraria conversar sobre o momento da área.`,
+  email:`Assunto: Candidatura para ${cg} | ${CONFIG.nome}\n\n${oi}\n\nVi a vaga de ${cg} na ${emp} e me identifiquei com o que vocês estão buscando.\n\n${RE}. ${pv}.${ex?" "+ex+".":""}\n\nSegue meu CV em anexo. Fico à disposição para conversarmos.\n\nAbraço,\n${sig}`,
+  followup:`${oi}\n\nPassando para saber se o processo de ${cg} na ${emp} segue aberto. Continuo com interesse e posso enviar qualquer informação que ajude na análise.${exl}\n\nObrigado!`,
+  agradece:`${oi}\n\nObrigado pela conversa de hoje sobre ${cg}.${ex?" Gostei especialmente de "+ex+".":""} Saí ainda mais convicto de que consigo contribuir, principalmente porque ${low}.\n\nFico no aguardo dos próximos passos.\n\nAbraço,\n${PN}`,
+  indicacao:`${oi}\n\nVi que a ${emp} abriu uma vaga de ${cg} e lembrei de você. Estou me candidatando e queria saber se você toparia me indicar ou me contar um pouco do contexto da área.\n\nResumindo o que levo: ${low}.\n\nSem problema nenhum se não der. Obrigado!`}[$("#mTipo").value]}
+function gen(){const t=txt();$("#mOut").textContent=t;const lim=$("#mTipo").value==="convite"?300:0;$("#mCount").textContent=t.length+" caracteres"+(lim&&t.length>lim?" · acima do limite, troque a prova por uma mais curta":"");$("#mMsg").textContent=""}
+["#mTipo","#mProva"].forEach(s=>$(s).onchange=gen);$("#mLang").onchange=()=>{provOpts();gen()};["#mNome","#mEmp","#mCargo","#mExtra"].forEach(s=>$(s).oninput=gen);$("#mVaga").onchange=()=>{fillFromVaga();gen()};gen();
+$("#mCopy").onclick=async()=>{try{await navigator.clipboard.writeText($("#mOut").textContent);$("#mMsg").textContent="Copiado."}catch(e){$("#mMsg").textContent="Selecione o texto e copie manualmente."}};
+
+/* perguntas */
+const LN={pt:"português",en:"inglês",es:"espanhol"};let SM=null,Q={mode:null};
+const norm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const STOP=new Set("para como voce voces nossa nosso nossos sobre qual quais porque por que esta este essa isso pela pelo com uma dos das nos nas sua seu suas seus the and you your our what why how with for are tell about have this that would does was can".split(" "));
+const toks=x=>[...new Set(norm(x).split(/[^a-z0-9]+/).filter(w=>w.length>2&&!STOP.has(w)))];
+function score(q,r){const qt=toks(q);if(!qt.length)return 0;const rt=toks((r.pergunta||"")+" "+(r.tags||[]).join(" "));const hit=qt.filter(w=>rt.some(x=>x===w||(x.length>4&&w.length>4&&x.slice(0,5)===w.slice(0,5)))).length;const bonus=(r.tags||[]).some(t=>t&&norm(q).includes(norm(t)))?.3:0;return Math.min(1,hit/qt.length+bonus)}
+function vq(){return S.vagas.find(x=>x.id===$("#qVaga").value)}
+function vars(t){const v=vq(),lg=$("#qLang").value,D={pt:["a empresa","a vaga"],en:["the company","the role"],es:["la empresa","la vacante"]}[lg];
+  const fx=v&&v.pretensaoCLT?brl(v.pretensaoCLT)+" (CLT)"+(v.pretensaoPJ?(lg==="en"?" or ":lg==="es"?" o ":" ou ")+brl(v.pretensaoPJ)+" (PJ)":""):({pt:"a definir de acordo com o escopo",en:"to be defined based on the scope",es:"a definir según el alcance"}[lg]);
+  return String(t||"").replaceAll("{empresa}",v?.empresa||D[0]).replaceAll("{cargo}",v?.cargo||D[1]).replaceAll("{faixa}",fx)}
+function qShow(t){$("#qOut").textContent=t;qCount()}
+function qCount(){const n=$("#qOut").innerText.trim().length,lim=+$("#qLim").value||0;$("#qCount").textContent=n+" caracteres"+(lim?` de ${lim}`:"");$("#qCount").style.color=lim&&n>lim?"var(--brick)":""}
+$("#qOut").oninput=qCount;$("#qLim").oninput=qCount;
+function buscar(){const q=$("#qTxt").value.trim();if(!q){$("#qMsg").textContent="Cole uma pergunta.";return}
+  const M=S.resp.map(r=>[r,score(q,r)]).filter(x=>x[1]>=.2).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  $("#qMatches").innerHTML=M.length?`<h3>No banco</h3>`+M.map(([r,sc])=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(r.pergunta)}<br><span class="mute">${Math.round(sc*100)}% parecida · ${["pt","en","es"].filter(l=>r["resposta_"+l]).map(l=>l.toUpperCase()).join(", ")}</span></span><button class="sm" data-qu="${r.id}">Usar</button></div>`).join(""):`<p class="note">Nada parecido no banco. Se precisar, use "Gerar com Claude" e salve a resposta para as próximas vezes.</p>`;
+  $("#qGen").hidden=!SM;$("#qSave").hidden=true;$("#qTrad").hidden=true;
+  if(M.length&&M[0][1]>=.5)usar(M[0][0].id);else{qShow("");$("#qMsg").textContent=M.length?"Escolha uma das respostas parecidas.":""}}
+$("#qBuscar").onclick=buscar;
+function usar(id){const r=S.resp.find(x=>x.id===id);if(!r)return;const lg=$("#qLang").value,lim=+$("#qLim").value||0;let t=r["resposta_"+lg],msg="Resposta do banco, sem gastar créditos.";Q={mode:null,id};$("#qTrad").hidden=true;$("#qSave").hidden=true;
+  if(!t){t=r.resposta_pt||r.resposta_en||r.resposta_es||"";msg=`Sem versão em ${LN[lg]} no banco. "Traduzir com Claude" cria a versão e salva no banco.`;$("#qTrad").hidden=!SM}
+  else if(lg==="pt"&&lim&&t.length>lim&&r.curta&&r.curta.length<=lim){t=r.curta;msg="Usei a versão curta para caber no limite."}
+  qShow(vars(t));$("#qMsg").textContent=msg+(lim&&vars(t).length>lim?" Está acima do limite: corte à mão ou peça uma versão menor ao Claude.":"");
+  if(db)db.collection("respostas").doc(id).update({usos:(r.usos||0)+1}).catch(()=>{})}
+function renderResp(){const L2=[...S.resp].sort((a,b)=>(b.usos||0)-(a.usos||0)||String(a.pergunta).localeCompare(b.pergunta));
+  $("#tResp tbody").innerHTML=L2.length?L2.map(r=>`<tr><td>${esc(r.pergunta)}${r.revisar?' <span class="tag hot">revisar</span>':""}</td><td>${["pt","en","es"].filter(l=>r["resposta_"+l]).map(l=>l.toUpperCase()).join(", ")}</td><td class="n">${r.usos||0}</td><td><div class="row"><button class="sm" data-qu="${r.id}">Usar</button><button class="sm" data-er="${r.id}">Editar</button><button class="sm" data-dr="${r.id}">Excluir</button></div></td></tr>`).join(""):`<tr><td colspan="4" class="empty">O banco está vazio.</td></tr>`;
+  const cur=$("#qVaga").value;$("#qVaga").innerHTML='<option value="">Nenhuma</option>'+S.vagas.map(v=>`<option value="${v.id}">${esc(v.empresa)} · ${esc(v.cargo)}</option>`).join("");$("#qVaga").value=cur}
+$("#btnResp").onclick=()=>openSheet("resp");
+$("#qCopy").onclick=async()=>{try{await navigator.clipboard.writeText($("#qOut").innerText);$("#qMsg").textContent="Copiado."}catch(e){$("#qMsg").textContent="Selecione o texto e copie manualmente."}};
+async function askClaude(prompt){$("#qMsg").textContent="Escrevendo…";try{const r=await SM(prompt,{onText:({text})=>{$("#qOut").textContent=vars(text);qCount()}});return r.text.trim()}catch(e){$("#qMsg").textContent=e.code==="not_granted"?"Acesso ao Claude não autorizado nesta página.":e.code==="rate_limited"?"Limite atingido, tente mais tarde.":"Não foi possível agora.";return null}}
+const REGRAS="Regras: primeira pessoa, tom de conversa direto, sem travessão, sem bajulação, sem linguagem corporativa vazia. Use só fatos do perfil; nunca invente números, empresas ou experiências. Quando citar a empresa ou o cargo, escreva literalmente {empresa} e {cargo}. Devolva só o texto da resposta.";
+$("#qGen").onclick=async()=>{const q=$("#qTxt").value.trim();if(!q){$("#qMsg").textContent="Cole uma pergunta.";return}const lg=$("#qLang").value,lim=+$("#qLim").value||0,v=vq();
+  const refs=S.resp.map(r=>[r,score(q,r)]).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([r])=>"- "+r.pergunta+": "+(r.resposta_pt||r.resposta_en||"")).join("\n");
+  const t=await askClaude(`Você responde perguntas de processos seletivos como se fosse ${CONFIG.nome}.\n\nPERFIL:\n${PERFIL}\n\nRESPOSTAS ANTERIORES (referência de tom):\n${refs}\n\nVAGA: ${v?`${v.cargo} na ${v.empresa}. ${v.notas||""}`:"não informada"}\n\nPERGUNTA: ${q}\n\nEscreva em ${LN[lg]}${lim?`, com no máximo ${lim} caracteres`:", entre 300 e 700 caracteres"}. Se a pergunta pedir algo que o perfil não cobre, responda com o que existe e acrescente uma última linha começando com "Conferir:" dizendo o que ${CONFIG.primeiroNome} deve completar. ${REGRAS}`);
+  if(t){qShow(vars(t));Q={mode:"new",raw:t,lang:lg,q};$("#qSave").hidden=false;$("#qMsg").textContent="Gerado pelo Claude. Revise antes de usar e salve no banco para reaproveitar."}};
+$("#qTrad").onclick=async()=>{const r=S.resp.find(x=>x.id===Q.id);if(!r)return;const lg=$("#qLang").value,src=r.resposta_pt||r.resposta_en||r.resposta_es;
+  const t=await askClaude(`Traduza para ${LN[lg]} a resposta de processo seletivo abaixo, mantendo o tom de conversa direto de ${CONFIG.primeiroNome}, sem travessão, e mantendo literalmente os marcadores {empresa}, {cargo} e {faixa}. Devolva só o texto traduzido.\n\n${src}`);
+  if(t){qShow(vars(t));Q={mode:"trans",id:r.id,raw:t,lang:lg};$("#qSave").hidden=false;$("#qTrad").hidden=true;$("#qMsg").textContent="Tradução pronta. Salve no banco para não gastar créditos da próxima vez."}};
+$("#qSave").onclick=async()=>{if(!db)return;try{if(Q.mode==="trans"){await db.collection("respostas").doc(Q.id).update({["resposta_"+Q.lang]:Q.raw})}else if(Q.mode==="new"){await db.collection("respostas").doc().set({pergunta:Q.q,tags:toks(Q.q).slice(0,6),["resposta_"+Q.lang]:Q.raw,usos:1,revisar:true,atualizado:new Date().toISOString()})}$("#qSave").hidden=true;$("#qMsg").textContent="Salvo no banco."}catch(e){$("#qMsg").textContent="Não salvou."}};
+
+/* padrões */
+function count(arr){const m={};for(const x of arr)if(x)m[x]=(m[x]||0)+1;return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+function bars(title,arr,tot){return`<div class="panel"><h3>${title}</h3><div class="mt">${arr.length?arr.slice(0,8).map(([k,n])=>`<div class="brow"><span>${esc(k)}</span><div class="bar"><i style="width:${n/tot*100}%"></i></div><b>${n}</b></div>`).join(""):'<p class="mute">Sem dados ainda.</p>'}</div></div>`}
+function renderPadroes(){const V=S.vagas,n=V.length;if(!n){$("#insights").innerHTML='<div class="panel empty">Os padrões aparecem a partir das vagas registradas.</div>';$("#padroes").innerHTML="";return}
+  const fam=V.map(v=>(FAM.find(f=>f[1].test(v.cargo||""))||["Outros"])[0]);
+  const kw=count(V.flatMap(v=>(v.palavrasChave||[]).map(k=>k.toLowerCase())));
+  const pct=(a,k)=>Math.round(a.filter(x=>x===k).length/n*100);
+  const remotos=pct(V.map(v=>v.modelo),"Remoto"),pj=pct(V.map(v=>v.contrato),"PJ");
+  const ret={};fam.forEach((f,i)=>{const v=V[i];if(["Salva","A confirmar"].includes(v.status))return;ret[f]=ret[f]||[0,0];ret[f][0]++;if(RESP.includes(v.status))ret[f][1]++});
+  const best=Object.entries(ret).filter(([,a])=>a[0]>=2).sort((a,b)=>b[1][1]/b[1][0]-a[1][1]/a[1][0])[0];
+  const pr=V.map(v=>v.pretensaoCLT).filter(Boolean);
+  const ins=[`${n} vagas registradas; ${remotos}% remotas e ${pj}% em PJ.`,`Família mais frequente: ${count(fam)[0][0]} (${count(fam)[0][1]} vagas).`,best?`Melhor taxa de retorno: ${best[0]} (${best[1][1]} de ${best[1][0]}).`:"Ainda não há candidaturas suficientes por família para comparar retorno.",pr.length?`Pretensão CLT média pedida: ${brl(pr.reduce((a,b)=>a+b,0)/pr.length)}.`:"",kw.length?`Palavras-chave que mais aparecem: ${kw.slice(0,5).map(k=>k[0]).join(", ")}. Confira se estão no CV e no LinkedIn.`:""].filter(Boolean);
+  $("#insights").innerHTML=`<div class="note">${ins.map(esc).join("<br>")}</div>`;
+  $("#padroes").innerHTML=bars("Famílias de cargo",count(fam),n)+bars("Setor",count(V.map(v=>v.setor)),n)+bars("Porte",count(V.map(v=>v.porte)),n)+bars("Modelo e contrato",count(V.map(v=>[v.modelo,v.contrato].filter(Boolean).join(" · "))),n)+bars("Plataforma",count(V.map(v=>v.plataforma)),n)+bars("Palavras-chave",kw,Math.max(1,kw[0]?.[1]||1))}
+
+/* contatos */
+function renderCont(){const L=[...S.contatos].sort((a,b)=>(a.proximoFollowup||"9").localeCompare(b.proximoFollowup||"9"));$("#tCont tbody").innerHTML=L.length?L.map(c=>`<tr><td><b>${esc(c.nome)}</b><br><span class="mute">${esc(c.papel||"")}</span></td><td>${esc(c.empresa||"")}</td><td>${esc(c.canal||"")}</td><td>${fd(c.ultimoContato)}</td><td>${c.proximoFollowup?`<span class="tag${c.proximoFollowup<=hoje()?" hot":""}">${fd(c.proximoFollowup)}</span>`:""}</td><td><div class="row"><button class="sm" data-ec="${c.id}">Editar</button><button class="sm" data-dc="${c.id}">Excluir</button></div></td></tr>`).join(""):`<tr><td colspan="6" class="empty">Registre recrutadores, gestores e pessoas que podem te indicar.</td></tr>`}
+
+/* metas */
+$("#btnMetas").onclick=()=>{edit={kind:"metas",fields:[]};$("#shTit").textContent="Metas da semana";$("#shForm").innerHTML=[["aplic","Aplicações"],["follow","Follow-ups"],["conex","Contatos novos"]].map(([k,l])=>`<label>${l}<input name="${k}" type="number" min="0" value="${S.metas[k]}"></label>`).join("");$("#sheet").classList.add("on")};
+const save0=$("#shSave").onclick;$("#shSave").onclick=async()=>{if(edit?.kind!=="metas")return save0();const f=new FormData($("#shForm"));const m={aplic:+f.get("aplic"),follow:+f.get("follow"),conex:+f.get("conex")};try{await db.doc("config/metas").set(m);$("#sheet").classList.remove("on")}catch(e){$("#shMsg").textContent="Não salvou."}};
+
+/* modo local: guarda tudo no navegador quando a página não roda dentro do Claude */
+function localDB(){const K="cbe:";let mem={};const read=c=>{try{return JSON.parse(localStorage.getItem(K+c)||"{}")}catch(e){return mem[c]||{}}},write=(c,o)=>{mem[c]=o;try{localStorage.setItem(K+c,JSON.stringify(o))}catch(e){}};const subs=[];
+  const emit=()=>subs.forEach(f=>f());const snap=c=>{const o=read(c);return{docs:Object.entries(o).map(([id,d])=>({id,exists:true,data:()=>d})),metadata:{fromCache:false}}};
+  const dref=(c,id)=>({id,set:async d=>{const o=read(c);o[id]=JSON.parse(JSON.stringify(d));write(c,o);emit()},update:async d=>{const o=read(c);o[id]=Object.assign(o[id]||{},d);write(c,o);emit()},delete:async()=>{const o=read(c);delete o[id];write(c,o);emit()},onSnapshot:(f)=>{const g=()=>{const d=read(c)[id];f({exists:!!d,data:()=>d})};subs.push(g);setTimeout(g,0);return()=>{}}});
+  const col=c=>({orderBy(){return this},limit(){return this},doc:id=>dref(c,id||Math.random().toString(36).slice(2,10)),onSnapshot:(f)=>{const g=()=>f(snap(c));subs.push(g);setTimeout(g,0);return()=>{}}});
+  if(!localStorage.getItem(K+"respostas")){const o={};for(const r of CONFIG.respostasIniciais){const{id,...d}=r;o[id]=d}write("respostas",o)}
+  return{collection:col,doc:p=>{const[c,id]=p.split("/");return dref(c,id)}}}
+function all(){renderResp();renderPainel();renderVagas();renderRadar();renderPadroes();renderCont();const cur=$("#mVaga").value;$("#mVaga").innerHTML='<option value="">Nenhuma (preencher à mão)</option>'+S.vagas.map(v=>`<option value="${v.id}">${esc(v.empresa)} · ${esc(v.cargo)}</option>`).join("");$("#mVaga").value=cur}
+all();
+
+/* dados */
+(async()=>{const b=$("#banner"),t=setTimeout(()=>{b.textContent="Os dados ainda não carregaram. Se continuar assim, abra a página pelo claude.ai com sua conta.";b.classList.add("on")},10000);
+  try{db=await claude.use("db")}catch(e){db=null}
+  if(!db){db=localDB();clearTimeout(t);b.textContent="Modo local: os dados ficam salvos só neste navegador. Exporte um backup de vez em quando.";b.classList.add("on")}
+  const ok=()=>{clearTimeout(t);b.classList.remove("on")},err=e=>{clearTimeout(t);b.textContent="Erro ao ler os dados ("+(e.code||"")+").";b.classList.add("on")};
+  const map=s=>s.docs.map(d=>({id:d.id,...d.data()}));
+  db.collection("vagas").onSnapshot(s=>{S.vagas=map(s);if(!s.metadata.fromCache)ok();all()},err);
+  db.collection("radar").orderBy("data","desc").limit(300).onSnapshot(s=>{S.radar=map(s);renderRadar();renderPainel()},err);
+  db.collection("respostas").onSnapshot(s=>{S.resp=map(s);renderResp()},err);
+  db.collection("contatos").onSnapshot(s=>{S.contatos=map(s);renderCont();renderPainel()},err);
+  db.doc("config/metas").onSnapshot(s=>{if(s.exists)S.metas=Object.assign(S.metas,s.data());renderPainel()},err);
+  db.doc("config/radar").onSnapshot(s=>{S.radarInfo=s.exists?s.data():null;renderRadar()},err);
+  try{const sm=await claude.use("sample");if(sm){SM=sm;$("#mClaude").hidden=false;$("#mClaude").onclick=async()=>{$("#mMsg").textContent="Refinando…";try{const r=await sm(`Você reescreve mensagens de candidatura de ${CONFIG.nome}. Perfil: ${CONFIG.perfil} Regras: primeira pessoa, tom direto e conversado, sem travessão, sem bajulação, sem linguagem corporativa vazia, não invente fatos. Responda no mesmo idioma da mensagem. Mantenha o tamanho${$("#mTipo").value==="convite"?" abaixo de 300 caracteres":""}. Devolva só o texto final.\n\nMensagem:\n${$("#mOut").textContent}`,{onText:({text})=>{$("#mOut").textContent=text}});$("#mOut").textContent=r.text;$("#mCount").textContent=r.text.length+" caracteres";$("#mMsg").textContent="Pronto."}catch(e){$("#mMsg").textContent=e.code==="not_granted"?"":"Não foi possível refinar agora.";if(e.code==="not_granted")$("#mClaude").hidden=true}}}}catch(e){}
+})();
+}
+</script>
+</body>
+</html>
