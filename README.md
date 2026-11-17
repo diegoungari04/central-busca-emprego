@@ -37,7 +37,7 @@ O radar diário precisa do Claude com acesso ao seu navegador e de uma tarefa ag
 
 ### 2. No Claude, sem instalar nada
 
-Envie o arquivo ([`template/central-busca.html`](template/central-busca.html](https://github.com/diegoungari04/central-busca-emprego/blob/main/central-busca-emprego/template/central-busca.html)) em uma conversa e peça: *"Personalize o CONFIG desta página com os meus dados do CV anexo, usando só fatos verdadeiros, e publique como artifact com banco de dados."*
+Envie o arquivo [`template/central-busca.html`](template/central-busca.html](https://github.com/diegoungari04/central-busca-emprego/blob/main/central-busca-emprego/template/central-busca.html) em uma conversa e peça: *"Personalize o CONFIG desta página com os meus dados do CV anexo, usando só fatos verdadeiros, e publique como artifact com banco de dados."*
 
 ### 3. Em outras IAs ou só no navegador
 
