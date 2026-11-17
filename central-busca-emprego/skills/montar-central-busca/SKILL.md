@@ -31,7 +31,7 @@ Siga `references/metodologia-salarial.md`. O modelo traz uma tabela de exemplo p
 
 ## 4. Agendar o radar diário
 
-Se a sessão tiver ferramentas de tarefas agendadas e a pessoa quiser o radar, crie uma tarefa agendada com o texto de `references/radar-prompt.md`, preenchendo perfil, cargos-alvo, localização e o slug da página. Ela precisa do computador da pessoa com o navegador e o LinkedIn logado. Diga em uma frase quando roda e o que exige. O radar só lê: nunca se candidata, envia mensagens ou altera perfis.
+Se a sessão tiver ferramentas de tarefas agendadas e a pessoa quiser o radar, rode primeiro uma busca de teste na conversa (LinkedIn Vagas, publicações do LinkedIn e Remotar, últimos 7 dias), grave as vagas e a lista `vistos` em `config/radar`, e então crie uma tarefa agendada com o texto de `references/radar-prompt.md`, preenchendo perfil, cargos-alvo, localização e o slug da página. Ela precisa do computador da pessoa com o navegador e o LinkedIn logado. Diga em uma frase quando roda e o que exige. O radar só lê: nunca se candidata, envia mensagens ou altera perfis.
 
 ## 5. Entregar
 
