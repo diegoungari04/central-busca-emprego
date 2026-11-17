@@ -1,0 +1,13 @@
+{
+  "name": "central-busca-emprego",
+  "version": "0.2.0",
+  "description": "Monta uma central pessoal de busca de emprego: tracker de vagas, banco salarial, gerador de mensagens em três idiomas, banco de respostas para processos seletivos, padrões das candidaturas e radar diário de vagas.",
+  "author": {
+    "name": "Diego Ungari",
+    "url": "https://www.linkedin.com/in/diegoungari"
+  },
+  "homepage": "https://github.com/diegoungari04/central-busca-emprego",
+  "repository": "https://github.com/diegoungari04/central-busca-emprego",
+  "license": "MIT",
+  "keywords": ["busca de emprego", "carreira", "recrutamento", "curriculo", "pretensao salarial", "job search"]
+}
